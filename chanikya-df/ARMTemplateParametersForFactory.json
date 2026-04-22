@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "chanikya-df"
+		},
+		"linkedserviceDL_accountKey": {
+			"value": ""
+		},
+		"ls_azureSql_password": {
+			"value": ""
+		},
+		"ls_onprem_filesystem_password": {
+			"value": ""
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"value": "https://github.com/"
+		},
+		"linkedserviceDL_properties_typeProperties_url": {
+			"value": "https://chanikyaadf.dfs.core.windows.net/"
+		},
+		"ls_azureSql_properties_typeProperties_server": {
+			"value": "chanikyasql.database.windows.net"
+		},
+		"ls_azureSql_properties_typeProperties_database": {
+			"value": "azureProjectserver"
+		},
+		"ls_azureSql_properties_typeProperties_userName": {
+			"value": "chanazureserver"
+		},
+		"ls_git_properties_typeProperties_url": {
+			"value": "https://github.com/"
+		},
+		"ls_onprem_filesystem_properties_typeProperties_host": {
+			"value": "C:\\Azurefiles"
+		},
+		"ls_onprem_filesystem_properties_typeProperties_userId": {
+			"value": "Administrator"
+		},
+		"managertrigger_properties_typeProperties_scope": {
+			"value": "/subscriptions/a2515198-b92c-4695-b23e-a142a3d0d760/resourceGroups/Chanikya/providers/Microsoft.Storage/storageAccounts/chanikyaadf"
+		}
+	}
+}

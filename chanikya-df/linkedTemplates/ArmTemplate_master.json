@@ -1,0 +1,146 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "chanikya-df"
+		},
+		"linkedserviceDL_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'linkedserviceDL'"
+		},
+		"ls_azureSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_azureSql'"
+		},
+		"ls_onprem_filesystem_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_onprem_filesystem'"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://github.com/"
+		},
+		"linkedserviceDL_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://chanikyaadf.dfs.core.windows.net/"
+		},
+		"ls_azureSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "chanikyasql.database.windows.net"
+		},
+		"ls_azureSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "azureProjectserver"
+		},
+		"ls_azureSql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "chanazureserver"
+		},
+		"ls_git_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://github.com/"
+		},
+		"ls_onprem_filesystem_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "C:\\Azurefiles"
+		},
+		"ls_onprem_filesystem_properties_typeProperties_userId": {
+			"type": "string",
+			"defaultValue": "Administrator"
+		},
+		"managertrigger_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/a2515198-b92c-4695-b23e-a142a3d0d760/resourceGroups/Chanikya/providers/Microsoft.Storage/storageAccounts/chanikyaadf"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "chanikya-df_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"linkedserviceDL_accountKey": {
+						"value": "[parameters('linkedserviceDL_accountKey')]"
+					},
+					"ls_azureSql_password": {
+						"value": "[parameters('ls_azureSql_password')]"
+					},
+					"HttpServer1_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
+					},
+					"linkedserviceDL_properties_typeProperties_url": {
+						"value": "[parameters('linkedserviceDL_properties_typeProperties_url')]"
+					},
+					"ls_azureSql_properties_typeProperties_server": {
+						"value": "[parameters('ls_azureSql_properties_typeProperties_server')]"
+					},
+					"ls_azureSql_properties_typeProperties_database": {
+						"value": "[parameters('ls_azureSql_properties_typeProperties_database')]"
+					},
+					"ls_azureSql_properties_typeProperties_userName": {
+						"value": "[parameters('ls_azureSql_properties_typeProperties_userName')]"
+					},
+					"ls_git_properties_typeProperties_url": {
+						"value": "[parameters('ls_git_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "chanikya-df_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ls_onprem_filesystem_password": {
+						"value": "[parameters('ls_onprem_filesystem_password')]"
+					},
+					"ls_onprem_filesystem_properties_typeProperties_host": {
+						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_host')]"
+					},
+					"ls_onprem_filesystem_properties_typeProperties_userId": {
+						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_userId')]"
+					},
+					"managertrigger_properties_typeProperties_scope": {
+						"value": "[parameters('managertrigger_properties_typeProperties_scope')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'chanikya-df_ArmTemplate_0')]"
+			]
+		}
+	]
+}
