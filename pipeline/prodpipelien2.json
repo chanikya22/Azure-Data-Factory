@@ -21,34 +21,11 @@
 				}
 			},
 			{
-				"name": "sqltodatalake",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "exeonprem",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "SqltoDatalake",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
-			},
-			{
 				"name": "alertmail",
 				"type": "WebActivity",
 				"dependsOn": [
 					{
-						"activity": "sqltodatalake",
+						"activity": "Executesqltodaatlake",
 						"dependencyConditions": [
 							"Succeeded",
 							"Failed"
@@ -67,9 +44,25 @@
 					"method": "POST",
 					"url": "https://prod-19.centralindia.logic.azure.com:443/workflows/a96650a94de84555a08a100db7489b33/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=z2Kymw7KvihaoWKE34GnY5FS890ppRd3Ekgj_c1JC6U",
 					"body": {
-						"value": "{\n    \"Pipeline_Name\": \"@{pipeline().Pipeline}\",\n    \"Run_ID\": \"@{pipeline().RunId}\",\n    \"Status\": \"@{activity('sqltodatalake').Status}\",\n    \"Error\": \"@{activity('sqltodatalake').Error, 'No Error'}\"\n}",
+						"value": "{\n    \"Pipeline_Name\": \"@{pipeline().Pipeline}\",\n    \"Run_ID\": \"@{pipeline().RunId}\",\n    \"Status\": \"@{activity('Executesqltodaatlake').Status}\",\n    \"Error\": \"@{activity('Executesqltodaatlake').Error}\"\n}",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "Executesqltodaatlake",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "SqltoDatalake",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
 				}
 			}
 		],

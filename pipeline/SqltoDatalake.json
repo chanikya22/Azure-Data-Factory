@@ -192,11 +192,6 @@
 				]
 			}
 		],
-		"variables": {
-			"vartime": {
-				"type": "String"
-			}
-		},
 		"annotations": []
 	}
 }
