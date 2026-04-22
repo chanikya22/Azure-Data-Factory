@@ -1,0 +1,27 @@
+{
+	"name": "lastload",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedserviceDL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "lastload.json",
+				"folderPath": "monitor/lastload",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"lastload": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
