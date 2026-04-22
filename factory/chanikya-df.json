@@ -1,0 +1,9 @@
+{
+	"name": "chanikya-df",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "b28c511c-7677-4bf6-872b-6d921f7f6543",
+		"tenantId": "4c5bf625-716b-491d-8147-cfbd66b4bc7f"
+	}
+}

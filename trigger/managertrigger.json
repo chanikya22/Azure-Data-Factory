@@ -1,0 +1,24 @@
+{
+	"name": "managertrigger",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "prodpipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/source/blobs/Fact_Sales.csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/a2515198-b92c-4695-b23e-a142a3d0d760/resourceGroups/Chanikya/providers/Microsoft.Storage/storageAccounts/chanikyaadf",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
