@@ -1,5 +1,5 @@
 {
-	"name": "jsonsink",
+	"name": "Json1",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "linkedserviceDL",
@@ -11,11 +11,10 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "DimAirport.json",
-				"folderPath": "jsons",
+				"folderPath": "OnPrem",
 				"fileSystem": "bronze"
 			}
 		},
 		"schema": {}
-	},
-	"type": "Microsoft.DataFactory/factories/datasets"
+	}
 }

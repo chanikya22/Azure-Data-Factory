@@ -34,7 +34,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "dsjson",
+						"referenceName": "Json2",
 						"type": "DatasetReference"
 					},
 					"name": "source4"
@@ -65,6 +65,9 @@
 				},
 				{
 					"name": "castCOST"
+				},
+				{
+					"name": "derivedColumn3"
 				}
 			],
 			"scriptLines": [
@@ -112,14 +115,18 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> FactBookings",
 				"source(output(",
-				"          airport_id as integer,",
-				"          airport_name as string,",
-				"          city as string,",
-				"          country as string",
+				"          iata as string,",
+				"          lon as string,",
+				"          iso as string,",
+				"          status as integer,",
+				"          name as string,",
+				"          continent as string,",
+				"          type as string,",
+				"          lat as string,",
+				"          size as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false,",
 				"     documentForm: 'documentPerLine') ~> source4",
 				"source1 derive(country = upper(country)) ~> derivedColumn1",
@@ -148,7 +155,8 @@
 				"FactBookings cast(output(",
 				"          ticket_cost as integer",
 				"     ),",
-				"     errors: true) ~> castCOST"
+				"     errors: true) ~> castCOST",
+				"source4 derive() ~> derivedColumn3"
 			]
 		}
 	}

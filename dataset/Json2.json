@@ -1,0 +1,51 @@
+{
+	"name": "Json2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedserviceDL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "airports.json",
+				"folderPath": "jsons",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"iata": {
+					"type": "string"
+				},
+				"lon": {
+					"type": "string"
+				},
+				"iso": {
+					"type": "string"
+				},
+				"status": {
+					"type": "integer"
+				},
+				"name": {
+					"type": "string"
+				},
+				"continent": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"lat": {
+					"type": "string"
+				},
+				"size": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
