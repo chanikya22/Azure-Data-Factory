@@ -17,6 +17,9 @@
 		"HttpServer1_properties_typeProperties_url": {
 			"value": "https://github.com/"
 		},
+		"HttpServer2_properties_typeProperties_url": {
+			"value": "https://drive.google.com/uc?export=download&id=1bWkJ_XzjHkTbd4pGa5cXhcVCbuKx7oDv"
+		},
 		"linkedserviceDL_properties_typeProperties_url": {
 			"value": "https://chanikyaadf.dfs.core.windows.net/"
 		},

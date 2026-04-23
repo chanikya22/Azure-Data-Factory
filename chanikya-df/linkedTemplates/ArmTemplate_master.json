@@ -23,6 +23,10 @@
 			"type": "string",
 			"defaultValue": "https://github.com/"
 		},
+		"HttpServer2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://drive.google.com/uc?export=download&id=1bWkJ_XzjHkTbd4pGa5cXhcVCbuKx7oDv"
+		},
 		"linkedserviceDL_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://chanikyaadf.dfs.core.windows.net/"
@@ -91,6 +95,9 @@
 					"HttpServer1_properties_typeProperties_url": {
 						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
 					},
+					"HttpServer2_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer2_properties_typeProperties_url')]"
+					},
 					"linkedserviceDL_properties_typeProperties_url": {
 						"value": "[parameters('linkedserviceDL_properties_typeProperties_url')]"
 					},
@@ -123,15 +130,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"ls_onprem_filesystem_password": {
-						"value": "[parameters('ls_onprem_filesystem_password')]"
-					},
-					"ls_onprem_filesystem_properties_typeProperties_host": {
-						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_host')]"
-					},
-					"ls_onprem_filesystem_properties_typeProperties_userId": {
-						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_userId')]"
 					}
 				}
 			},
@@ -153,13 +151,42 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"ls_onprem_filesystem_password": {
+						"value": "[parameters('ls_onprem_filesystem_password')]"
+					},
+					"ls_onprem_filesystem_properties_typeProperties_host": {
+						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_host')]"
+					},
+					"ls_onprem_filesystem_properties_typeProperties_userId": {
+						"value": "[parameters('ls_onprem_filesystem_properties_typeProperties_userId')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'chanikya-df_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "chanikya-df_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
 					"managertrigger_properties_typeProperties_scope": {
 						"value": "[parameters('managertrigger_properties_typeProperties_scope')]"
 					}
 				}
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'chanikya-df_ArmTemplate_1')]"
+				"[resourceId('Microsoft.Resources/deployments', 'chanikya-df_ArmTemplate_2')]"
 			]
 		}
 	]
