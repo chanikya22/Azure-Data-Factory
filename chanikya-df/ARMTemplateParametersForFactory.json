@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "chanikya-df"
 		},
+		"AzureSqldblookup_password": {
+			"value": ""
+		},
 		"linkedserviceDL_accountKey": {
 			"value": ""
 		},
@@ -13,6 +16,15 @@
 		},
 		"ls_onprem_filesystem_password": {
 			"value": ""
+		},
+		"AzureSqldblookup_properties_typeProperties_server": {
+			"value": "chanikyasql.database.windows.net"
+		},
+		"AzureSqldblookup_properties_typeProperties_database": {
+			"value": "azureProjectserver"
+		},
+		"AzureSqldblookup_properties_typeProperties_userName": {
+			"value": "chanazureserver"
 		},
 		"HttpServer1_properties_typeProperties_url": {
 			"value": "https://github.com/"
