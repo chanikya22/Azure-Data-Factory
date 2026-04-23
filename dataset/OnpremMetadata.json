@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "FileServerLocation",
-				"folderPath": "AnshLambaYoutube-main/ADF_Project"
+				"folderPath": "AnshLambaYoutube-main/ADF_Project/inputfiles"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",

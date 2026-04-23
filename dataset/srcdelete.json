@@ -1,0 +1,26 @@
+{
+	"name": "srcdelete",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onprem_filesystem",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().filename",
+					"type": "Expression"
+				},
+				"folderPath": "AnshLambaYoutube-main/ADF_Project/inputfiles"
+			}
+		}
+	}
+}
