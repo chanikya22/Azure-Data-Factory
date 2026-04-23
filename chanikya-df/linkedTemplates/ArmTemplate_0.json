@@ -282,6 +282,87 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Json1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedserviceDL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimAirport.json",
+						"folderPath": "OnPrem",
+						"fileSystem": "bronze"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Json2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedserviceDL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "airports.json",
+						"folderPath": "jsons",
+						"fileSystem": "bronze"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"iata": {
+							"type": "string"
+						},
+						"lon": {
+							"type": "string"
+						},
+						"iso": {
+							"type": "string"
+						},
+						"status": {
+							"type": "integer"
+						},
+						"name": {
+							"type": "string"
+						},
+						"continent": {
+							"type": "string"
+						},
+						"type": {
+							"type": "string"
+						},
+						"lat": {
+							"type": "string"
+						},
+						"size": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SQLsrc')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -380,7 +461,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/emptyjson')]",
+			"name": "[concat(parameters('factoryName'), '/ds_Fact_bookings_parque')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -389,100 +470,108 @@
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "Json",
+				"type": "Parquet",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "empty.json",
-						"folderPath": "monitor/emptyjson",
+						"folderPath": "sql",
 						"fileSystem": "bronze"
-					}
+					},
+					"compressionCodec": "snappy"
 				},
-				"schema": {
-					"type": "object"
-				}
+				"schema": [
+					{
+						"name": "booking_id",
+						"type": "INT32"
+					},
+					{
+						"name": "passenger_id",
+						"type": "INT32"
+					},
+					{
+						"name": "flight_id",
+						"type": "INT32"
+					},
+					{
+						"name": "airline_id",
+						"type": "INT32"
+					},
+					{
+						"name": "origin_airport_id",
+						"type": "INT32"
+					},
+					{
+						"name": "destination_airport_id",
+						"type": "INT32"
+					},
+					{
+						"name": "booking_date",
+						"type": "DATE"
+					},
+					{
+						"name": "ticket_cost",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "flight_duration_mins",
+						"type": "INT32"
+					},
+					{
+						"name": "checkin_status",
+						"type": "UTF8"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/gitJSONsrc')]",
+			"name": "[concat(parameters('factoryName'), '/ds_airline')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "ls_git",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "chanikya22/Azure-Data-Factory/refs/heads/main/Raw%20Data/DimAirport.json"
-					}
-				},
-				"schema": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_git')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/gitsrc')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "HttpServer1",
+					"referenceName": "linkedserviceDL",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "chanikya22/Azure-Data-Factory/blob/main/Raw%20Data/Fact_Sales_1.csv"
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimAirline.csv",
+						"folderPath": "OnPrem",
+						"fileSystem": "bronze"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/HttpServer1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/jsonsink')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "linkedserviceDL",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "dimairport.json",
-						"folderPath": "github",
-						"fileSystem": "bronze"
+				"schema": [
+					{
+						"name": "airline_id",
+						"type": "String"
+					},
+					{
+						"name": "airline_name",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
 					}
-				},
-				"schema": {}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/lastload')]",
+			"name": "[concat(parameters('factoryName'), '/ds_airport_json')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -495,15 +584,24 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "lastload.json",
-						"folderPath": "monitor/lastload",
+						"fileName": "DimAirport.json",
+						"folderPath": "jsons",
 						"fileSystem": "bronze"
 					}
 				},
 				"schema": {
 					"type": "object",
 					"properties": {
-						"lastload": {
+						"airport_id": {
+							"type": "integer"
+						},
+						"airport_name": {
+							"type": "string"
+						},
+						"city": {
+							"type": "string"
+						},
+						"country": {
 							"type": "string"
 						}
 					}
@@ -514,7 +612,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/metadata')]",
+			"name": "[concat(parameters('factoryName'), '/ds_flight')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -527,43 +625,9 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileSystem": "destination"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/param_source_service')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "linkedserviceDL",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"P_file_name": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().P_file_name",
-							"type": "Expression"
-						},
-						"fileSystem": "destination"
+						"fileName": "DimFlight.csv",
+						"folderPath": "OnPrem",
+						"fileSystem": "bronze"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -572,43 +636,19 @@
 				},
 				"schema": [
 					{
-						"name": "transaction_id",
+						"name": "flight_id",
 						"type": "String"
 					},
 					{
-						"name": "transactional_date",
+						"name": "flight_number",
 						"type": "String"
 					},
 					{
-						"name": "product_id",
+						"name": "departure_time",
 						"type": "String"
 					},
 					{
-						"name": "customer_id",
-						"type": "String"
-					},
-					{
-						"name": "payment",
-						"type": "String"
-					},
-					{
-						"name": "credit_card",
-						"type": "String"
-					},
-					{
-						"name": "loyalty_card",
-						"type": "String"
-					},
-					{
-						"name": "cost",
-						"type": "String"
-					},
-					{
-						"name": "quantity",
-						"type": "String"
-					},
-					{
-						"name": "price",
+						"name": "arrival_time",
 						"type": "String"
 					}
 				]
@@ -618,7 +658,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/reportingsink')]",
+			"name": "[concat(parameters('factoryName'), '/ds_json')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -626,36 +666,106 @@
 					"referenceName": "linkedserviceDL",
 					"type": "LinkedServiceReference"
 				},
-				"parameters": {
-					"p_file_name": {
-						"type": "string"
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimAirport.json",
+						"folderPath": "OnPrem",
+						"fileSystem": "bronze"
 					}
 				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_json_airport')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedserviceDL",
+					"type": "LinkedServiceReference"
+				},
 				"annotations": [],
-				"type": "DelimitedText",
+				"type": "Json",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().p_file_name",
-							"type": "Expression"
+						"fileName": "DimAirport.json",
+						"folderPath": "jsons",
+						"fileSystem": "bronze"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"airport_id": {
+							"type": "integer"
 						},
-						"folderPath": "csvfiles",
-						"fileSystem": "reporting"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
+						"airport_name": {
+							"type": "string"
+						},
+						"city": {
+							"type": "string"
+						},
+						"country": {
+							"type": "string"
+						}
+					}
+				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/sink')]",
+			"name": "[concat(parameters('factoryName'), '/ds_jsonsrc')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "linkedserviceDL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "DimAirport.json",
+						"folderPath": "jsons",
+						"fileSystem": "bronze"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"airport_id": {
+							"type": "integer"
+						},
+						"airport_name": {
+							"type": "string"
+						},
+						"city": {
+							"type": "string"
+						},
+						"country": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_passenger')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -668,42 +778,37 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "Fact_sales_1",
-						"fileSystem": "destination"
+						"fileName": "DimPassenger.csv",
+						"folderPath": "OnPrem",
+						"fileSystem": "bronze"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/sink1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "linkedserviceDL",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "destination"
+				"schema": [
+					{
+						"name": "passenger_id",
+						"type": "String"
 					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
+					{
+						"name": "full_name",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "age",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/linkedserviceDL')]"
