@@ -4,7 +4,7 @@
 		"annotations": [],
 		"type": "HttpServer",
 		"typeProperties": {
-			"url": "https://drive.usercontent.google.com/download?id=16GEqZ-_8CYdK8yd5tlnNnjdMl5wdcKu6&export=download&authuser=0",
+			"url": "https://drive.google.com/uc?export=download&id=1bWkJ_XzjHkTbd4pGa5cXhcVCbuKx7oDv",
 			"enableServerCertificateValidation": true,
 			"authenticationType": "Anonymous"
 		}
