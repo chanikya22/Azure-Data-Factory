@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "DataTransformations",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -31,16 +31,38 @@
 						"type": "DatasetReference"
 					},
 					"name": "FactBookings"
-				},
-				{
-					"dataset": {
-						"referenceName": "Json2",
-						"type": "DatasetReference"
-					},
-					"name": "source4"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "linkedserviceDL",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"linkedService": {
+						"referenceName": "linkedserviceDL",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink2"
+				},
+				{
+					"linkedService": {
+						"referenceName": "linkedserviceDL",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink3"
+				},
+				{
+					"linkedService": {
+						"referenceName": "linkedserviceDL",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink4"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
@@ -68,6 +90,18 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "alterRow2"
+				},
+				{
+					"name": "alterRow3"
+				},
+				{
+					"name": "alterRow4"
 				}
 			],
 			"scriptLines": [
@@ -114,21 +148,6 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> FactBookings",
-				"source(output(",
-				"          iata as string,",
-				"          lon as string,",
-				"          iso as string,",
-				"          status as integer,",
-				"          name as string,",
-				"          continent as string,",
-				"          type as string,",
-				"          lat as string,",
-				"          size as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
-				"     documentForm: 'documentPerLine') ~> source4",
 				"source1 derive(country = upper(country)) ~> derivedColumn1",
 				"source2 select(mapColumn(",
 				"          passenger_id,",
@@ -156,7 +175,87 @@
 				"          ticket_cost as integer",
 				"     ),",
 				"     errors: true) ~> castCOST",
-				"source4 derive() ~> derivedColumn3"
+				"derivedColumn1 derive(airline_name = lower(airline_name)) ~> derivedColumn3",
+				"derivedColumn3 alterRow(upsertIf(1>0)) ~> alterRow1",
+				"derivedColumn2 alterRow(upsertIf(1>0)) ~> alterRow2",
+				"select2 alterRow(upsertIf(1>0)) ~> alterRow3",
+				"castCOST alterRow(upsertIf(1>0)) ~> alterRow4",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'airports',",
+				"     mergeSchema: true,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['airline_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1",
+				"alterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'passenger',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['passenger_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink2",
+				"alterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'flight',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['flight_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink3",
+				"alterRow4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'FactBookings',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['booking_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink4"
 			]
 		}
 	}
