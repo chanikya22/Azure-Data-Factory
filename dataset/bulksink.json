@@ -1,0 +1,55 @@
+{
+	"name": "bulksink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "linkedserviceDL",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().tablename",
+					"type": "Expression"
+				},
+				"fileSystem": "destination"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"customer_id": {
+					"type": "string"
+				},
+				"first_name": {
+					"type": "string"
+				},
+				"last_name": {
+					"type": "string"
+				},
+				"email": {
+					"type": "string"
+				},
+				"phone_number": {
+					"type": "string"
+				},
+				"city": {
+					"type": "string"
+				},
+				"signup_date": {
+					"type": "string"
+				},
+				"last_updated_timestamp": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

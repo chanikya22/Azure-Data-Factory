@@ -5,6 +5,14 @@
 			"referenceName": "ls_azureSql",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			},
+			"dbname": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [
@@ -59,8 +67,14 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "dbo",
-			"table": "FactBookings"
+			"schema": {
+				"value": "@dataset().dbname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
 		}
 	}
 }
