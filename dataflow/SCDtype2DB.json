@@ -22,10 +22,17 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "trgttable",
+						"referenceName": "stagingsink",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "stagingtableinsert"
+				},
+				{
+					"dataset": {
+						"referenceName": "stagingsink",
+						"type": "DatasetReference"
+					},
+					"name": "stagingtableupdate"
 				}
 			],
 			"transformations": [
@@ -54,10 +61,22 @@
 					"name": "hashnotexist"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "markinactive"
+				},
+				{
+					"name": "hashremove"
+				},
+				{
+					"name": "alterRow2"
+				},
+				{
+					"name": "isactive1"
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     run_id as string",
+				"}",
 				"source(output(",
 				"          emp_id as integer,",
 				"          name as string,",
@@ -76,20 +95,26 @@
 				"          location as string,",
 				"          is_active as integer,",
 				"          start_date as timestamp,",
-				"          end_date as timestamp",
+				"          end_date as timestamp,",
+				"          created_date as timestamp,",
+				"          updated_date as timestamp,",
+				"          pipeline_run_id as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> tgrttable",
 				"srcfile derive(hash = md5(emp_id,name,dept,salary,location)) ~> srcHASH",
-				"tgrttable derive(hash = md5(emp_id,name,dept,salary,location)) ~> trgtHASH",
+				"isactive1 derive(hash = md5(emp_id,name,dept,salary,location)) ~> trgtHASH",
 				"srcHASH, trgtHASH exists(srcHASH@hash == trgtHASH@hash,",
 				"     negate:true,",
 				"     broadcast: 'auto')~> hashnotexists",
 				"hashnotexists derive({start_date } = currentTimestamp(),",
-				"          {end_date } = 2999-12-31,",
-				"          {is_current } = 1) ~> derivecols",
+				"          {end_date } = 9999-12-31,",
+				"          is_active = 1,",
+				"          {created_date } = currentTimestamp(),",
+				"          {updated_date } = currentTimestamp(),",
+				"          {pipeline_run_id } = $run_id) ~> derivecols",
 				"derivecols select(mapColumn(",
 				"          emp_id,",
 				"          name,",
@@ -98,7 +123,7 @@
 				"          location,",
 				"          {start_date },",
 				"          {end_date },",
-				"          {is_current }",
+				"          {is_current } = is_active",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> removehash",
@@ -110,7 +135,26 @@
 				"     negate:true,",
 				"     broadcast: 'auto')~> hashnotexist",
 				"hashnotexist derive(is_active = 0,",
-				"          end_date = currentTimestamp()) ~> derivedColumn1",
+				"          end_date = currentTimestamp(),",
+				"          updated_date = currentTimestamp(),",
+				"          pipeline_run_id = $run_id) ~> markinactive",
+				"markinactive select(mapColumn(",
+				"          emp_id,",
+				"          name,",
+				"          dept,",
+				"          salary,",
+				"          location,",
+				"          is_active,",
+				"          start_date,",
+				"          end_date,",
+				"          created_date,",
+				"          updated_date,",
+				"          pipeline_run_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> hashremove",
+				"hashremove alterRow(updateIf(true())) ~> alterRow2",
+				"tgrttable filter(is_active ==1) ~> isactive1",
 				"alterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -121,7 +165,9 @@
 				"          location as string,",
 				"          is_active as integer,",
 				"          start_date as timestamp,",
-				"          end_date as timestamp",
+				"          created_date as timestamp,",
+				"          updated_date as timestamp,",
+				"          pipeline_run_id as string",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -130,7 +176,29 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+				"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableinsert",
+				"alterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          emp_id as integer,",
+				"          name as string,",
+				"          dept as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as integer,",
+				"          start_date as timestamp,",
+				"          created_date as timestamp,",
+				"          updated_date as timestamp,",
+				"          pipeline_run_id as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate"
 			]
 		}
 	}
