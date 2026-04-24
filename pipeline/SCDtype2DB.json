@@ -33,8 +33,8 @@
 				}
 			},
 			{
-				"name": "Copy data1",
-				"type": "Copy",
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
 						"activity": "Data flow1",
@@ -52,124 +52,12 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"sqlWriterStoredProcedureName": "[dbo].[merge_employees_scd2]",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "emp_id",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "emp_id",
-									"type": "Int32",
-									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
-									"name": "name",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "name",
-									"type": "String",
-									"physicalType": "varchar"
-								}
-							},
-							{
-								"source": {
-									"name": "dept",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "dept",
-									"type": "String",
-									"physicalType": "varchar"
-								}
-							},
-							{
-								"source": {
-									"name": "salary",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "salary",
-									"type": "Int32",
-									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
-									"name": "location",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "location",
-									"type": "String",
-									"physicalType": "varchar"
-								}
-							},
-							{
-								"source": {
-									"name": "is_active",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "is_active",
-									"type": "Int32",
-									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
-									"name": "start_date",
-									"type": "DateTime",
-									"physicalType": "datetime"
-								},
-								"sink": {
-									"name": "start_date",
-									"type": "DateTime",
-									"physicalType": "datetime"
-								}
-							}
-						],
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
+					"storedProcedureName": "[dbo].[merge_employees_scd2]"
 				},
-				"inputs": [
-					{
-						"referenceName": "stagingsink",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "trgttable",
-						"type": "DatasetReference"
-					}
-				]
+				"linkedServiceName": {
+					"referenceName": "ls_azureSql",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []
