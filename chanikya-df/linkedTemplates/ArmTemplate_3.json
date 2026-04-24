@@ -13,6 +13,153 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/dimAirline')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "linkedserviceDL",
+								"type": "LinkedServiceReference"
+							},
+							"name": "airline"
+						},
+						{
+							"linkedService": {
+								"referenceName": "linkedserviceDL",
+								"type": "LinkedServiceReference"
+							},
+							"name": "flight"
+						},
+						{
+							"linkedService": {
+								"referenceName": "linkedserviceDL",
+								"type": "LinkedServiceReference"
+							},
+							"name": "FactBookins"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "linkedserviceDL",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sinkGold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "airlinejoin"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "aggregatecost"
+						},
+						{
+							"name": "window1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          airline_id as short,",
+						"          airline_name as string,",
+						"          country as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: true,",
+						"     format: 'delta',",
+						"     fileSystem: 'silver',",
+						"     folderPath: 'airports') ~> airline",
+						"source(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     fileSystem: 'silver',",
+						"     folderPath: 'flight') ~> flight",
+						"source(output(",
+						"          booking_id as integer,",
+						"          passenger_id as integer,",
+						"          flight_id as integer,",
+						"          airline_id as integer,",
+						"          origin_airport_id as integer,",
+						"          destination_airport_id as integer,",
+						"          booking_date as date,",
+						"          ticket_cost as integer,",
+						"          flight_duration_mins as integer,",
+						"          checkin_status as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delta',",
+						"     fileSystem: 'silver',",
+						"     folderPath: 'FactBookings') ~> FactBookins",
+						"FactBookins, airline join(FactBookins@airline_id == airline@airline_id,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> airlinejoin",
+						"airlinejoin select(mapColumn(",
+						"          booking_id,",
+						"          passenger_id,",
+						"          flight_id,",
+						"          airline_id = FactBookins@airline_id,",
+						"          origin_airport_id,",
+						"          destination_airport_id,",
+						"          booking_date,",
+						"          ticket_cost,",
+						"          flight_duration_mins,",
+						"          checkin_status,",
+						"          airline_name,",
+						"          country",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 aggregate(groupBy(airline_name),",
+						"     totalsales = sum(ticket_cost)) ~> aggregatecost",
+						"aggregatecost window(desc(totalsales, true),",
+						"     top = denseRank()) ~> window1",
+						"window1 filter(top <= 5) ~> filter1",
+						"filter1 alterRow(upsertIf(1>0)) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     fileSystem: 'gold',",
+						"     folderPath: 'business',",
+						"     overwrite: true,",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable: false,",
+						"     insertable: false,",
+						"     updateable: false,",
+						"     upsertable: true,",
+						"     keys:['airline_name'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sinkGold"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/GitApicall')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -148,7 +295,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dimAirline')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SqltoDatalake')]",
@@ -1967,14 +2116,14 @@
 								"referenceName": "stagingsink",
 								"type": "DatasetReference"
 							},
-							"name": "stagingtableinsert"
+							"name": "stagingtableupdate"
 						},
 						{
 							"dataset": {
-								"referenceName": "stagingsink",
+								"referenceName": "staginginsert",
 								"type": "DatasetReference"
 							},
-							"name": "stagingtableupdate"
+							"name": "stagningtbaleinsert"
 						}
 					],
 					"transformations": [
@@ -2044,6 +2193,7 @@
 						"     ),",
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
+						"     limit: 100,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> tgrttable",
 						"srcfile derive(hash = md5(emp_id,name,dept,salary,location)) ~> srcHASH",
@@ -2072,7 +2222,8 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: false) ~> removehash",
-						"removehash alterRow(insertIf(1>0)) ~> alterRow1",
+						"removehash alterRow(insertIf(1>0),",
+						"     partitionBy('hash', 1)) ~> alterRow1",
 						"trgtHASH, srcHASH exists(tgrttable@emp_id == srcfile@emp_id,",
 						"     negate:false,",
 						"     broadcast: 'auto')~> recordexists",
@@ -2100,36 +2251,6 @@
 						"     skipDuplicateMapOutputs: true) ~> hashremove",
 						"hashremove alterRow(updateIf(true())) ~> alterRow2",
 						"tgrttable filter(is_active ==1) ~> isactive1",
-						"alterRow1 sink(allowSchemaDrift: true,",
-						"     validateSchema: true,",
-						"     input(",
-						"          emp_id as integer,",
-						"          name as string,",
-						"          dept as string,",
-						"          salary as integer,",
-						"          location as string,",
-						"          is_active as integer,",
-						"          start_date as timestamp,",
-						"          created_date as timestamp,",
-						"          updated_date as timestamp,",
-						"          pipeline_run_id as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          emp_id,",
-						"          name,",
-						"          dept,",
-						"          salary,",
-						"          location,",
-						"          is_active",
-						"     )) ~> stagingtableinsert",
 						"alterRow2 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -2145,13 +2266,51 @@
 						"          pipeline_run_id as string",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:true,",
+						"     insertable:false,",
 						"     updateable:false,",
-						"     upsertable:false,",
+						"     upsertable:true,",
+						"     keys:['emp_id'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate"
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          emp_id as integer,",
+						"          name as string,",
+						"          dept as string,",
+						"          salary as integer,",
+						"          location as string,",
+						"          is_active as integer,",
+						"          start_date as timestamp,",
+						"          created_date as timestamp,",
+						"          updated_date as timestamp,",
+						"          pipeline_run_id as string,",
+						"          end_date as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['emp_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          emp_id,",
+						"          name,",
+						"          dept,",
+						"          salary,",
+						"          location,",
+						"          is_active,",
+						"          start_date = {start_date },",
+						"          created_date = {created_date },",
+						"          updated_date = {updated_date },",
+						"          pipeline_run_id = {pipeline_run_id },",
+						"          end_date = {end_date }",
+						"     )) ~> stagningtbaleinsert"
 					]
 				}
 			},
@@ -2252,54 +2411,6 @@
 				}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SCDtye2')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "SCDtype2",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "SCDtype2",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"source": {},
-									"target": {},
-									"inserttrgt": {},
-									"updatetrgt": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/SCDtype2')]"
-			]
 		}
 	]
 }

@@ -348,8 +348,8 @@
 								"datasetParameters": {
 									"srcfile": {},
 									"tgrttable": {},
-									"stagingtableinsert": {},
-									"stagingtableupdate": {}
+									"stagingtableupdate": {},
+									"stagningtbaleinsert": {}
 								}
 							},
 							"staging": {},
@@ -4642,6 +4642,83 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/staginginsert')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azureSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "emp_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "dept",
+						"type": "varchar"
+					},
+					{
+						"name": "salary",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "location",
+						"type": "varchar"
+					},
+					{
+						"name": "is_active",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "start_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "created_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "updated_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "pipeline_run_id",
+						"type": "varchar"
+					},
+					{
+						"name": "end_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "employees_scd2_staging"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azureSql')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/stagingsink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5573,14 +5650,14 @@
 								"referenceName": "stagingsink",
 								"type": "DatasetReference"
 							},
-							"name": "stagingtableinsert"
+							"name": "stagingtableupdate"
 						},
 						{
 							"dataset": {
-								"referenceName": "stagingsink",
+								"referenceName": "staginginsert",
 								"type": "DatasetReference"
 							},
-							"name": "stagingtableupdate"
+							"name": "stagningtbaleinsert"
 						}
 					],
 					"transformations": [
@@ -5650,6 +5727,7 @@
 						"     ),",
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
+						"     limit: 100,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> tgrttable",
 						"srcfile derive(hash = md5(emp_id,name,dept,salary,location)) ~> srcHASH",
@@ -5678,7 +5756,8 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: false) ~> removehash",
-						"removehash alterRow(insertIf(1>0)) ~> alterRow1",
+						"removehash alterRow(insertIf(1>0),",
+						"     partitionBy('hash', 1)) ~> alterRow1",
 						"trgtHASH, srcHASH exists(tgrttable@emp_id == srcfile@emp_id,",
 						"     negate:false,",
 						"     broadcast: 'auto')~> recordexists",
@@ -5706,36 +5785,6 @@
 						"     skipDuplicateMapOutputs: true) ~> hashremove",
 						"hashremove alterRow(updateIf(true())) ~> alterRow2",
 						"tgrttable filter(is_active ==1) ~> isactive1",
-						"alterRow1 sink(allowSchemaDrift: true,",
-						"     validateSchema: true,",
-						"     input(",
-						"          emp_id as integer,",
-						"          name as string,",
-						"          dept as string,",
-						"          salary as integer,",
-						"          location as string,",
-						"          is_active as integer,",
-						"          start_date as timestamp,",
-						"          created_date as timestamp,",
-						"          updated_date as timestamp,",
-						"          pipeline_run_id as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          emp_id,",
-						"          name,",
-						"          dept,",
-						"          salary,",
-						"          location,",
-						"          is_active",
-						"     )) ~> stagingtableinsert",
 						"alterRow2 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -5751,20 +5800,59 @@
 						"          pipeline_run_id as string",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:true,",
+						"     insertable:false,",
 						"     updateable:false,",
-						"     upsertable:false,",
+						"     upsertable:true,",
+						"     keys:['emp_id'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate"
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          emp_id as integer,",
+						"          name as string,",
+						"          dept as string,",
+						"          salary as integer,",
+						"          location as string,",
+						"          is_active as integer,",
+						"          start_date as timestamp,",
+						"          created_date as timestamp,",
+						"          updated_date as timestamp,",
+						"          pipeline_run_id as string,",
+						"          end_date as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['emp_id'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          emp_id,",
+						"          name,",
+						"          dept,",
+						"          salary,",
+						"          location,",
+						"          is_active,",
+						"          start_date = {start_date },",
+						"          created_date = {created_date },",
+						"          updated_date = {updated_date },",
+						"          pipeline_run_id = {pipeline_run_id },",
+						"          end_date = {end_date }",
+						"     )) ~> stagningtbaleinsert"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/srcfile')]",
 				"[concat(variables('factoryId'), '/datasets/trgttable')]",
-				"[concat(variables('factoryId'), '/datasets/stagingsink')]"
+				"[concat(variables('factoryId'), '/datasets/stagingsink')]",
+				"[concat(variables('factoryId'), '/datasets/staginginsert')]"
 			]
 		},
 		{
