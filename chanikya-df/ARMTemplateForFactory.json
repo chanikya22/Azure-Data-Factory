@@ -318,6 +318,59 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SCDtype2DB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "SCDtype2DB",
+								"type": "DataFlowReference",
+								"parameters": {
+									"run_id": {
+										"value": "'@{pipeline().RunId}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"srcfile": {},
+									"tgrttable": {},
+									"stagingtableinsert": {},
+									"stagingtableupdate": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/SCDtype2DB')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SilverLayer')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -4561,6 +4614,77 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/stagingsink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azureSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "emp_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "dept",
+						"type": "varchar"
+					},
+					{
+						"name": "salary",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "location",
+						"type": "varchar"
+					},
+					{
+						"name": "is_active",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "start_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "created_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "updated_date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "pipeline_run_id",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "employees_scd2_staging"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azureSql')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/trgttable')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5418,10 +5542,17 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "trgttable",
+								"referenceName": "stagingsink",
 								"type": "DatasetReference"
 							},
-							"name": "sink1"
+							"name": "stagingtableinsert"
+						},
+						{
+							"dataset": {
+								"referenceName": "stagingsink",
+								"type": "DatasetReference"
+							},
+							"name": "stagingtableupdate"
 						}
 					],
 					"transformations": [
@@ -5450,10 +5581,22 @@
 							"name": "hashnotexist"
 						},
 						{
-							"name": "derivedColumn1"
+							"name": "markinactive"
+						},
+						{
+							"name": "hashremove"
+						},
+						{
+							"name": "alterRow2"
+						},
+						{
+							"name": "isactive1"
 						}
 					],
 					"scriptLines": [
+						"parameters{",
+						"     run_id as string",
+						"}",
 						"source(output(",
 						"          emp_id as integer,",
 						"          name as string,",
@@ -5472,20 +5615,26 @@
 						"          location as string,",
 						"          is_active as integer,",
 						"          start_date as timestamp,",
-						"          end_date as timestamp",
+						"          end_date as timestamp,",
+						"          created_date as timestamp,",
+						"          updated_date as timestamp,",
+						"          pipeline_run_id as string",
 						"     ),",
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> tgrttable",
 						"srcfile derive(hash = md5(emp_id,name,dept,salary,location)) ~> srcHASH",
-						"tgrttable derive(hash = md5(emp_id,name,dept,salary,location)) ~> trgtHASH",
+						"isactive1 derive(hash = md5(emp_id,name,dept,salary,location)) ~> trgtHASH",
 						"srcHASH, trgtHASH exists(srcHASH@hash == trgtHASH@hash,",
 						"     negate:true,",
 						"     broadcast: 'auto')~> hashnotexists",
 						"hashnotexists derive({start_date } = currentTimestamp(),",
-						"          {end_date } = 2999-12-31,",
-						"          {is_current } = 1) ~> derivecols",
+						"          {end_date } = 9999-12-31,",
+						"          is_active = 1,",
+						"          {created_date } = currentTimestamp(),",
+						"          {updated_date } = currentTimestamp(),",
+						"          {pipeline_run_id } = $run_id) ~> derivecols",
 						"derivecols select(mapColumn(",
 						"          emp_id,",
 						"          name,",
@@ -5494,7 +5643,7 @@
 						"          location,",
 						"          {start_date },",
 						"          {end_date },",
-						"          {is_current }",
+						"          {is_current } = is_active",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> removehash",
@@ -5506,7 +5655,26 @@
 						"     negate:true,",
 						"     broadcast: 'auto')~> hashnotexist",
 						"hashnotexist derive(is_active = 0,",
-						"          end_date = currentTimestamp()) ~> derivedColumn1",
+						"          end_date = currentTimestamp(),",
+						"          updated_date = currentTimestamp(),",
+						"          pipeline_run_id = $run_id) ~> markinactive",
+						"markinactive select(mapColumn(",
+						"          emp_id,",
+						"          name,",
+						"          dept,",
+						"          salary,",
+						"          location,",
+						"          is_active,",
+						"          start_date,",
+						"          end_date,",
+						"          created_date,",
+						"          updated_date,",
+						"          pipeline_run_id",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> hashremove",
+						"hashremove alterRow(updateIf(true())) ~> alterRow2",
+						"tgrttable filter(is_active ==1) ~> isactive1",
 						"alterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -5517,7 +5685,9 @@
 						"          location as string,",
 						"          is_active as integer,",
 						"          start_date as timestamp,",
-						"          end_date as timestamp",
+						"          created_date as timestamp,",
+						"          updated_date as timestamp,",
+						"          pipeline_run_id as string",
 						"     ),",
 						"     deletable:false,",
 						"     insertable:true,",
@@ -5526,13 +5696,36 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableinsert",
+						"alterRow2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          emp_id as integer,",
+						"          name as string,",
+						"          dept as string,",
+						"          salary as integer,",
+						"          location as string,",
+						"          is_active as integer,",
+						"          start_date as timestamp,",
+						"          created_date as timestamp,",
+						"          updated_date as timestamp,",
+						"          pipeline_run_id as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> stagingtableupdate"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/srcfile')]",
-				"[concat(variables('factoryId'), '/datasets/trgttable')]"
+				"[concat(variables('factoryId'), '/datasets/trgttable')]",
+				"[concat(variables('factoryId'), '/datasets/stagingsink')]"
 			]
 		},
 		{
