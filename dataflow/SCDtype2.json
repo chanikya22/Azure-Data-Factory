@@ -1,0 +1,160 @@
+{
+	"name": "SCDtype2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "employeeslatest",
+						"type": "DatasetReference"
+					},
+					"name": "source"
+				},
+				{
+					"dataset": {
+						"referenceName": "emptarget",
+						"type": "DatasetReference"
+					},
+					"name": "target"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "insert",
+						"type": "DatasetReference"
+					},
+					"name": "inserttrgt"
+				},
+				{
+					"dataset": {
+						"referenceName": "insert",
+						"type": "DatasetReference"
+					},
+					"name": "updatetrgt"
+				}
+			],
+			"transformations": [
+				{
+					"name": "srchash"
+				},
+				{
+					"name": "trgthash"
+				},
+				{
+					"name": "exists1"
+				},
+				{
+					"name": "isactive"
+				},
+				{
+					"name": "removehash"
+				},
+				{
+					"name": "existingrecords"
+				},
+				{
+					"name": "existingrecupdate"
+				},
+				{
+					"name": "changetoinactive"
+				},
+				{
+					"name": "reomvehash"
+				},
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          emp_id as integer,",
+				"          name as string,",
+				"          dept as string,",
+				"          salary as integer,",
+				"          location as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source",
+				"source(output(",
+				"          emp_id as integer,",
+				"          name as string,",
+				"          dept as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> target",
+				"source derive(hash = md5(emp_id,name,dept,salary,location)) ~> srchash",
+				"target derive(hash = md5(emp_id,name,dept,salary,location)) ~> trgthash",
+				"srchash, trgthash exists(srchash@hash == trgthash@hash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> exists1",
+				"exists1 derive(isactive = 1) ~> isactive",
+				"isactive select(mapColumn(",
+				"          emp_id,",
+				"          name,",
+				"          dept,",
+				"          salary,",
+				"          location,",
+				"          isactive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> removehash",
+				"trgthash, srchash exists(target@emp_id == source@emp_id,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> existingrecords",
+				"existingrecords, srchash exists(srchash@hash == trgthash@hash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> existingrecupdate",
+				"existingrecupdate derive(is_active = 0) ~> changetoinactive",
+				"changetoinactive select(mapColumn(",
+				"          emp_id,",
+				"          name,",
+				"          dept,",
+				"          salary,",
+				"          location,",
+				"          is_active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> reomvehash",
+				"reomvehash alterRow(updateIf(true())) ~> alterRow1",
+				"removehash sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          emp_id as string,",
+				"          name as string,",
+				"          dept as string,",
+				"          salary as string,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> inserttrgt",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          emp_id as string,",
+				"          name as string,",
+				"          dept as string,",
+				"          salary as string,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> updatetrgt"
+			]
+		}
+	}
+}
